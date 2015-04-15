@@ -333,12 +333,13 @@ sed -i "s/^.*myorigin.*=.*\$myhostname.*$/myorigin = \$myhostname/g" /etc/postfi
 sed -i "s/^.*relay_domains.*=.*\$mydestination/relay_domains = \$mydestination/g" /etc/postfix/main.cf
 
 # setup opendkim
+sed -i 's#^.*Mode.*$#Mode sv#g' /etc/opendkim.conf
 sed -i 's#^.*KeyFile.*/etc.*$#KeyFile /etc/opendkim/keys/my.private#g' /etc/opendkim.conf
 sed -i "s/^.*Domain\s.*$/Domain = $MAIL_DOMAIN/g" /etc/opendkim.conf
-sed -i 's#^.*KeyTable\s\s.*$#KeyTable  refile:/etc/opendkim/KeyTable #g' /etc/opendkim.conf
-sed -i 's#^.*SigningTable\s\s.*$#SigningTable refile:/etc/opendkim/SigningTable#g' /etc/opendkim.conf
-sed -i 's#^.*ExternalIgnoreList\s\s.*$#ExternalIgnoreList refile:/etc/opendkim/TrustedHosts#g' /etc/opendkim.conf
-sed -i 's#^.*InternalHosts\s\s.*$#InternalHosts = refile:/etc/opendkim/TrustedHosts#g' /etc/opendkim.conf
+sed -i 's#^.*KeyTable[\t\s].*$#KeyTable  refile:/etc/opendkim/KeyTable #g' /etc/opendkim.conf
+sed -i 's#^.*SigningTable[\t\s].*$#SigningTable refile:/etc/opendkim/SigningTable#g' /etc/opendkim.conf
+sed -i 's#^.*ExternalIgnoreList[\t\s].*$#ExternalIgnoreList refile:/etc/opendkim/TrustedHosts#g' /etc/opendkim.conf
+sed -i 's#^.*InternalHosts[\t\s].*$#InternalHosts refile:/etc/opendkim/TrustedHosts#g' /etc/opendkim.conf
 
 # KeyTable
 echo "default._domainkey.$MAIL_DOMAIN $MAIL_DOMAIN:default:/etc/opendkim/keys/my.private" >> /etc/opendkim/KeyTable
@@ -361,8 +362,9 @@ chmod 644 /etc/opendkim/keys/my.public
 
 # dkim add to postfix
 cat <<EOT >> /etc/postfix/main.cf
-smtpd_milters = inet:localhost:8891, inet:localhost:8892
-non_smtpd_milters = inet:localhost:8891, inet:localhost:8892
+smtpd_milters = inet:localhost:8891
+non_smtpd_milters = inet:localhost:8891
+milter_default_action = accept
 EOT
 
 #
@@ -371,15 +373,15 @@ EOT
 #
 
 # install dk-milter
-mkdir /usr/man
-mkdir /usr/man/man3
-mkdir /usr/man/man8
-wget wget http://downloads.sourceforge.net/project/dk-milter/DomainKeys%20Milter/1.0.2/dk-milter-1.0.2.tar.gz?r=http%3A%2F%2Fsourceforge.net%2Fprojects%2Fdk-milter%2F&ts=1428995065&use_mirror=nchc -O dk-milter-1.0.2.tar.gz
-tar zxvf dk-milter-1.0.2.tar.gz
-cd dk-milter-1.0.2.tar.gz
-sh Build -c
-sh Build install
-/usr/bin/dk-filter -l -b sv -p inet:8892@localhost -d $MAIL_DOMAIN -H -s /etc/opendkim/keys/my.private -S dk &
+#mkdir /usr/man
+#mkdir /usr/man/man3
+#mkdir /usr/man/man8
+#wget -O dk-milter-1.0.2.tar.gz --no-http-keep-alive "http://downloads.sourceforge.net/project/dk-milter/DomainKeys%20Milter/1.0.2/dk-milter-1.0.2.tar.gz?r=http%3A%2F%2Fsourceforge.net%2Fprojects%2Fdk-milter%2F&ts=1428995065&use_mirror=nchc"
+#tar zxvf dk-milter-1.0.2.tar.gz
+#cd dk-milter-1.0.2
+#sh Build -c
+#sh Build install
+#/usr/bin/dk-filter -l -b sv -p inet:8892@localhost -d $MAIL_DOMAIN -H -s /etc/opendkim/keys/my.private -S dk &
 
 
 
@@ -517,6 +519,9 @@ sed -i "s/name=SSH.*dest=you@example.com/name=SSH, dest=$ALERT_EMAIL/g" /etc/fai
 /etc/init.d/fail2ban start
 /sbin/chkconfig fail2ban on
 
+# start opendkim
+/etc/init.d/opendkim start
+/sbin/chkconfig opendkim on
 
 #######################
 #                     #  
