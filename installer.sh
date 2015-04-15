@@ -42,7 +42,7 @@ EXTINF="eth0"
 OPEN_INPUT_PORTS="80 993"
 
 # open output ports
-OPEN_OUTPUT_PORTS="80 443 53 123"
+OPEN_OUTPUT_PORTS="25 80 443 53 123"
 
 # alert email
 ALERT_EMAIL=herb123456@gmail.com
@@ -219,10 +219,12 @@ make
 make install
 
 # initial default setting and init script
-cp php.ini-production /etc/php.ini
+cp php.ini-development /etc/php.ini
+cp php.ini-production /etc/php-fpm.ini
 cp ./sapi/fpm/php-fpm.conf /etc/php-fpm.conf
 cp ./sapi/fpm/init.d.php-fpm /etc/init.d/php-fpm
 chmod +x /etc/init.d/php-fpm
+sed -i "/php_opts=.*$/aphp_opts=\$php_opts\" -c /etc/php-fpm.ini\"" /etc/init.d/php-fpm
 mkdir /etc/php.d
 
 # add shared module
@@ -249,21 +251,22 @@ cd $WORKING_DIR
 
 # optimize php.ini
 # enable opcache
-sed -i 's/^.*opcache.enable=.*$/opcache.enable = 1/g' /etc/php.ini
+sed -i 's/^.*opcache.enable=.*$/opcache.enable = 1/g' /etc/php-fpm.ini
 # set timezone
+sed -i "s#;date.timezone =#date.timezone = Asia/Taipei#g" /etc/php-fpm.ini
 sed -i "s#;date.timezone =#date.timezone = Asia/Taipei#g" /etc/php.ini
 # expose set off
-sed -i "s/^.*expose_php = .*$/expose_php = Off/g" /etc/php.ini
+sed -i "s/^.*expose_php = .*$/expose_php = Off/g" /etc/php-fpm.ini
 mkdir /var/log/php-fpm
 # set php error log
-sed -i "/^.*error_log = syslog.*$/aerror_log = /var/log/php-fpm/php_error.log" /etc/php.ini
+sed -i "/^.*error_log = syslog.*$/aerror_log = /var/log/php-fpm/php_error.log" /etc/php-fpm.ini
 # set disable functions
-sed -i "s/^.*disable_functions =.*$/disable_functions = exec,passthru,shell_exec,system,proc_open,popen,show_source/g" /etc/php.ini
+sed -i "s/^.*disable_functions =.*$/disable_functions = exec,passthru,shell_exec,system,proc_open,popen,show_source/g" /etc/php-fpm.ini
 # set open basedir to document root and tmp directory
-sed -i 's#^.*open_basedir =.*$#open_basedir = /var/www:/tmp#g' /etc/php.ini
+sed -i 's#^.*open_basedir =.*$#open_basedir = /var/www:/tmp#g' /etc/php-fpm.ini
 # add cache size
-sed -i "s/^.*realpath_cache_size =.*$/realpath_cache_size = 4096k/" /etc/php.ini
-sed -i "s/^.*realpath_cache_ttl =.*$/realpath_cache_ttl = 7200/" /etc/php.ini
+sed -i "s/^.*realpath_cache_size =.*$/realpath_cache_size = 4096k/" /etc/php-fpm.ini
+sed -i "s/^.*realpath_cache_ttl =.*$/realpath_cache_ttl = 7200/" /etc/php-fpm.ini
 # disable xdebug
 mv /etc/php.d/xdebug.ini /etc/php.d/xdebug.ini.disable
 # disable snmp
