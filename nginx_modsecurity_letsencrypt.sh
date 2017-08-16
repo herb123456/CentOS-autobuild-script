@@ -6,13 +6,17 @@ source variable.sh
 yum install -y git wget gcc gcc-c++ pcre-devel zlib-devel openssl openssl-devel httpd-devel libxml2-devel xz-devel python-devel libcurl-devel libxslt-devel gd gd-devel gmp gmp-devel perl-Tk-devel perl-ExtUtils-Embed.noarch GeoIP GeoIP-devel gperftools gperftools-devel
 yum groupinstall -y 'Development Tools' 
 
-wget https://www.modsecurity.org/tarball/2.9.1/modsecurity-$MOD_VERSION.tar.gz
+# wget https://www.modsecurity.org/tarball/2.9.1/modsecurity-$MOD_VERSION.tar.gz
 wget http://nginx.org/download/nginx-$NGINX_VERSION.tar.gz
+wget https://www.openssl.org/source/openssl-1.0.2-latest.tar.gz
 
-tar zxvf modsecurity-$MOD_VERSION.tar.gz
+# tar zxvf modsecurity-$MOD_VERSION.tar.gz
 tar zxvf nginx-$NGINX_VERSION.tar.gz
+tar zxvf openssl-1.0.2-latest.tar.gz
 
+git clone https://github.com/SpiderLabs/ModSecurity.git modsecurity-$MOD_VERSION
 cd modsecurity-$MOD_VERSION
+./autogen.sh
 ./configure --enable-standalone-module --disable-mlogc
 make
 make install
@@ -21,7 +25,7 @@ cd ..
 
 cd nginx-$NGINX_VERSION
 sed -i "s/Server: nginx/Server: Hello/g" src/http/ngx_http_header_filter_module.c
-./configure --prefix=/usr/share/nginx --sbin-path=/usr/sbin/nginx --modules-path=/usr/lib64/nginx/modules --conf-path=/etc/nginx/nginx.conf --error-log-path=/var/log/nginx/error.log --http-log-path=/var/log/nginx/access.log --http-client-body-temp-path=/var/lib/nginx/tmp/client_body --http-proxy-temp-path=/var/lib/nginx/tmp/proxy --http-fastcgi-temp-path=/var/lib/nginx/tmp/fastcgi --http-uwsgi-temp-path=/var/lib/nginx/tmp/uwsgi --http-scgi-temp-path=/var/lib/nginx/tmp/scgi --pid-path=/run/nginx.pid --lock-path=/run/lock/subsys/nginx --user=nginx --group=nginx --with-file-aio --with-ipv6 --with-http_ssl_module --with-http_v2_module --with-http_realip_module --with-http_addition_module --with-http_xslt_module=dynamic --with-http_image_filter_module=dynamic --with-http_geoip_module=dynamic --with-http_sub_module --with-http_dav_module --with-http_flv_module --with-http_mp4_module --with-http_gunzip_module --with-http_gzip_static_module --with-http_random_index_module --with-http_secure_link_module --with-http_degradation_module --with-http_slice_module --with-http_stub_status_module --with-http_perl_module=dynamic --with-mail=dynamic --with-mail_ssl_module --with-pcre --with-pcre-jit --with-stream=dynamic --with-stream_ssl_module --with-google_perftools_module --with-debug --with-cc-opt='-O2 -g -pipe -Wall -Wp,-D_FORTIFY_SOURCE=2 -fexceptions -fstack-protector-strong --param=ssp-buffer-size=4 -grecord-gcc-switches -specs=/usr/lib/rpm/redhat/redhat-hardened-cc1 -m64 -mtune=generic' --add-module=../modsecurity-$MOD_VERSION/nginx/modsecurity
+./configure --prefix=/usr/share/nginx --sbin-path=/usr/sbin/nginx --modules-path=/usr/lib64/nginx/modules --conf-path=/etc/nginx/nginx.conf --error-log-path=/var/log/nginx/error.log --http-log-path=/var/log/nginx/access.log --http-client-body-temp-path=/var/lib/nginx/tmp/client_body --http-proxy-temp-path=/var/lib/nginx/tmp/proxy --http-fastcgi-temp-path=/var/lib/nginx/tmp/fastcgi --http-uwsgi-temp-path=/var/lib/nginx/tmp/uwsgi --http-scgi-temp-path=/var/lib/nginx/tmp/scgi --pid-path=/run/nginx.pid --lock-path=/run/lock/subsys/nginx --user=nginx --group=nginx --with-file-aio --with-ipv6 --with-http_ssl_module --with-http_v2_module --with-http_realip_module --with-http_addition_module --with-http_xslt_module=dynamic --with-http_image_filter_module=dynamic --with-http_geoip_module=dynamic --with-http_sub_module --with-http_dav_module --with-http_flv_module --with-http_mp4_module --with-http_gunzip_module --with-http_gzip_static_module --with-http_random_index_module --with-http_secure_link_module --with-http_degradation_module --with-http_slice_module --with-http_stub_status_module --with-http_perl_module=dynamic --with-mail=dynamic --with-mail_ssl_module --with-pcre --with-pcre-jit --with-stream=dynamic --with-stream_ssl_module --with-google_perftools_module --with-debug --with-cc-opt='-O2 -g -pipe -Wall -Wp,-D_FORTIFY_SOURCE=2 -fexceptions -fstack-protector-strong --param=ssp-buffer-size=4 -grecord-gcc-switches -specs=/usr/lib/rpm/redhat/redhat-hardened-cc1 -m64 -mtune=generic' --add-module=../modsecurity-$MOD_VERSION/nginx/modsecurity --with-openssl=../openssl-1.0.2l
 
 make
 make install
